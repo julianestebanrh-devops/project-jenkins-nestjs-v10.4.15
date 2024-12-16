@@ -1,0 +1,46 @@
+pipeline {
+    agent any
+    environment {
+        NODE_VERSION = "node -v"
+        ZIP_FILE = "nestjs-app.zip"
+        REPO_URL = "https://github.com/julianestebanrh-devops/project-jenkins-nestjs-v10.4.15.git"
+    }
+    stages {
+        stage('Mostrar versión de Node.js') {
+            steps {
+                sh '${NODE_VERSION}'
+            }
+        }
+        stage('Clonar repositorio') {
+            steps {
+                git branch: 'main', url: "${REPO_URL}"
+            }
+        }
+        stage('Instalar dependencias') {
+            steps {
+                sh 'npm install'
+            }
+        }
+        stage('Compilar aplicación') {
+            steps {
+                sh 'npm run build'
+            }
+        }
+        stage('Crear archivo ZIP') {
+            steps {
+                sh 'zip -r ${ZIP_FILE} dist'
+            }
+        }
+    }
+    post {
+        always {
+            archiveArtifacts artifacts: "${ZIP_FILE}", fingerprint: true
+        }
+        success {
+            echo "Pipeline completado con éxito. Archivo ZIP generado: ${ZIP_FILE}"
+        }
+        failure {
+            echo "Pipeline fallido. Revisa los errores en los logs."
+        }
+    }
+}
